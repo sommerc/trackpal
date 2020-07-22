@@ -4,7 +4,7 @@ from setuptools import setup
 with open("README.md", "rb") as f:
     description = f.read().decode("utf-8")
 
-with open('careless/version.py', "r") as f:
+with open('trackpal/version.py', "r") as f:
     exec(f.read())
 
 setup(
