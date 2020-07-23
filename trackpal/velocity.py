@@ -1,10 +1,9 @@
 import numpy as np
-import pandasd as pd
+import pandas as pd
 
-from .utils import
+from .utils import defdict2array
 from functools import partial
 from collections import defaultdict
-
 
 
 def displacement(trajectory, coords, frame="FRAME"):
@@ -57,7 +56,7 @@ def _velocity_autocorr_all_tracks(trajectory, auto_corr_values, coords, frame="F
             auto_corr_values[shift].append(m)
 
 
-def auto_correlation_curve(table_tracks, trackid, frame_interval=1):
+def auto_correlation_curve(table_tracks, coords, trackid, frame_interval=1):
     autocorr_values = defaultdict(list)
     autocorr_values[0].append(1)  # delay has vac of 1
 
@@ -86,9 +85,7 @@ def auto_correlation_curve(table_tracks, trackid, frame_interval=1):
 
     taus = np.arange(max_delay) * frame_interval
 
-    return pd.DataFrame(
-        {"tau": taus, "mean": ac_means, "std": ac_std, "sem": ac_sems}
-    )
+    return pd.DataFrame({"tau": taus, "mean": ac_means, "std": ac_std, "sem": ac_sems})
 
 
 # def distribution(table_tracks, frame_interval):
