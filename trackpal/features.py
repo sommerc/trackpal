@@ -40,7 +40,7 @@ class MSDParabola(TrajectoryFeature):
     name = "msd_parabola"
 
     def compute(self, trj, clip=0.9, min_trj_len=3):
-        tau, msd_vals = msd.msd_per_track(trj, self.coords, self.frame)
+        tau, msd_vals = msd.    per_track(trj, self.coords, self.frame)
         d, v2, r2 = 0, 0, 0
         if len(tau) > min_trj_len:
             d, v2, r2 = utils.fit_parabola(tau, msd_vals, clip=clip)

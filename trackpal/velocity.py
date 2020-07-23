@@ -1,20 +1,13 @@
-import numpy; np=numpy
-import pandas; pd=pandas
+import numpy as np
+import pandasd as pd
 
+from .utils import
 from functools import partial
 from collections import defaultdict
-from scipy.optimize import curve_fit
-from matplotlib import pyplot as plt
 
-def defdict2array(defdict, agg=numpy.mean):
-    tau = numpy.zeros(len(defdict), dtype=int)
-    arr = numpy.zeros(len(defdict), dtype=numpy.float32)
-    for i, (k, v) in enumerate(sorted(defdict.items())):
-        tau[i] = k
-        arr[i] = agg(defdict[k])
-    return tau, arr
 
-def compute_velocities(trajectory, coords, frame="FRAME"):
+
+def displacement(trajectory, coords, frame="FRAME"):
     """computes velocity of tracks"""
     velo = (trajectory[coords] - trajectory[coords].shift(1)).dropna()
     velo[frame] = trajectory[frame].shift(1).dropna()
@@ -22,7 +15,8 @@ def compute_velocities(trajectory, coords, frame="FRAME"):
 
     return velo
 
-def velocity_autocorr_pre_track(trajectory, coords, frame="FRAME"):
+
+def autocorr_pre_track(trajectory, coords, frame="FRAME"):
     """Compute autocorrelation velocity for each trajectory
     and integrate results into a auto_corr_values dictionary.
     Note, this function has no ouput, adds key,values
@@ -43,7 +37,8 @@ def velocity_autocorr_pre_track(trajectory, coords, frame="FRAME"):
 
     return defdict2array(auto_corr_values)
 
-def velocity_autocorr_all_tracks(trajectory, auto_corr_values, coords, frame="FRAME"):
+
+def _velocity_autocorr_all_tracks(trajectory, auto_corr_values, coords, frame="FRAME"):
     """Compute autocorrelation velocity for each trajectory
     and integrate results into a auto_corr_values dictionary.
     Note, this function has no ouput, adds key,values
@@ -61,59 +56,66 @@ def velocity_autocorr_all_tracks(trajectory, auto_corr_values, coords, frame="FR
         for t, m in zip(taus, corr):
             auto_corr_values[shift].append(m)
 
-def gaussian(x, a, mu, sigma):
-    return a*np.exp(-(x-mu)**2/(2*sigma**2))
+
+def auto_correlation_curve(table_tracks, trackid, frame_interval=1):
+    autocorr_values = defaultdict(list)
+    autocorr_values[0].append(1)  # delay has vac of 1
+
+    velocities = table_tracks.groupby(trackid).apply(displacement, coords=coords)
+
+    velocities.groupby(trackid).apply(
+        _velocity_autocorr_all_tracks, auto_corr_values=autocorr_values, coords=coords
+    )
+
+    max_delay = int(max(autocorr_values.keys())) + 1
+
+    ntracks = np.zeros(max_delay)
+    ac_means = np.zeros(max_delay)
+    ac_std = np.zeros(max_delay)
+
+    for k, v_lst in autocorr_values.items():
+        ki = int(k)
+        ntracks[ki] = len(v_lst)
+        ac_means[ki] = np.mean(v_lst)
+        ac_std[ki] = np.std(v_lst)
+
+    ac_std[0] = ac_std[1]  # avoid infinity weight
+    ntracks[0] = ntracks[1]
+
+    ac_sems = ac_std / np.sqrt(ntracks)
+
+    taus = np.arange(max_delay) * frame_interval
+
+    return pd.DataFrame(
+        {"tau": taus, "mean": ac_means, "std": ac_std, "sem": ac_sems}
+    )
 
 
-def velocities_distribution(table_tracks, frame_interval):
-    '''plots distribuition of velocities directly from the track displacement'''
+# def distribution(table_tracks, frame_interval):
+#     """plots distribuition of velocities directly from the track displacement"""
 
-    print('Processing Velocities Distribution ...')
+#     print("Processing Velocities Distribution ...")
 
-    velocities = table_tracks.groupby("TRACK_ID").apply(compute_velocities, coords=['POSITION_X', 'POSITION_Y']);
-    velocities_dist = np.sqrt((velocities[['POSITION_X', 'POSITION_Y']] ** 2).sum(1)) / frame_interval * 1000 # in nm/s
+#     velocities = table_tracks.groupby("TRACK_ID").apply(
+#         displacement, coords=["POSITION_X", "POSITION_Y"]
+#     )
+#     velocities_dist = (
+#         np.sqrt((velocities[["POSITION_X", "POSITION_Y"]] ** 2).sum(1))
+#         / frame_interval
+#         * 1000
+#     )  # in nm/s
 
-    binning = int(np.sqrt(len(velocities_dist)))
+#     binning = int(np.sqrt(len(velocities_dist)))
 
-    plt.figure(figsize=(5,4), dpi=100)
-    counts, bins, patches = plt.hist(velocities_dist, color = 'blue', alpha = 0.8, edgecolor = 'black')
+#     plt.figure(figsize=(5, 4), dpi=100)
+#     counts, bins, patches = plt.hist(
+#         velocities_dist, color="blue", alpha=0.8, edgecolor="black"
+#     )
 
-    plt.xlabel('Velocitities (nm/s)', fontsize=12)
-    plt.ylabel('Counts', fontsize=12)
-    #plt.legend(loc=0, fontsize = 10, frameon = False)
-    plt.title(" Velocities Distribution")
+#     plt.xlabel("Velocitities (nm/s)", fontsize=12)
+#     plt.ylabel("Counts", fontsize=12)
+#     # plt.legend(loc=0, fontsize = 10, frameon = False)
+#     plt.title(" Velocities Distribution")
 
-    return velocities_dist
+#     return velocities_dist
 
-def compute_directionality(table_tracks, frame_interval):
-    'there is no output, just a visualization tool'
-
-    print('Processing Velocity Autocorrelation ...')
-
-    auto_corr_values = defaultdict(list)
-
-    velocities = table_tracks.groupby("TRACK_ID").apply(compute_velocities, coords=['POSITION_X', 'POSITION_Y'])
-    velocities.groupby("TRACK_ID").apply(partial(velocity_autocorr_all_tracks, auto_corr_values = auto_corr_values, coords=['POSITION_X', 'POSITION_Y']))
-
-    ntracks     = np.array(list(map(len, auto_corr_values.values())))
-    corr_means  = np.array(list(map(np.mean, auto_corr_values.values())))
-    corr_stds   = np.array(list(map(np.std, auto_corr_values.values())))
-    corr_t_axis = np.arange(len(corr_means)) * frame_interval
-    corr_sems  = corr_stds/(np.sqrt(ntracks))
-
-    plt.figure(figsize=(5,4), dpi=100)
-    plt.plot(corr_t_axis, corr_means, '-b', label="<V_Corr>")
-    plt.fill_between(corr_t_axis, corr_means - corr_sems, corr_means + corr_sems, color='blue',  alpha=0.1, label="error")
-
-    plt.hlines(0, xmin=0, xmax=corr_t_axis.max(), linestyles = '--', lw = 0.5)
-    plt.legend(loc=0, frameon = False)
-    plt.xlabel("Delays (s)" , fontsize=12)
-    plt.ylabel("Velocity Autocorrelation", fontsize=12)
-    plt.ylim([-1, 1.1])
-    plt.title('Directionality Analysis')
-    plt.tight_layout()
-
-    vcorr_data = pd.DataFrame([corr_t_axis,corr_means,corr_sems]).T
-    vcorr_data.columns = ['time_axis','corr_mean','corr_sem']
-
-    return vcorr_data
