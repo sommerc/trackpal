@@ -6,6 +6,16 @@ coords = ["Position X", "Position Y"]
 trackid = "TrackID"
 
 
+def _brownian_xy(n, diffusion=1, x_rng=(0, 100), y_rng=(0, 100), frame_interval=1):
+    x_off = np.random.rand() * (x_rng[1] - x_rng[0]) + x_rng[0]
+    y_off = np.random.rand() * (y_rng[1] - y_rng[0]) + x_rng[1]
+
+    pos_xy = np.random.randn(n, 2) * np.sqrt(2 * diffusion * frame_interval)
+    pos_xy = np.cumsum(pos_xy, axis=0) + [y_off, x_off]
+
+    return pos_xy
+
+
 def brownian(
     n_tracks=20,
     min_time=0,
@@ -19,16 +29,16 @@ def brownian(
     res = []
     for t_id in range(n_tracks):
 
-        x_off = np.random.rand() * (x_rng[1] - x_rng[0]) + x_rng[0]
-        y_off = np.random.rand() * (y_rng[1] - y_rng[0]) + x_rng[1]
-
-        pos_xy = np.random.randn(max_time - min_time + 1, 2) * np.sqrt(
-            2 * diffusion * frame_interval
-        )
-        pos_xy = np.cumsum(pos_xy, axis=0) + [y_off, x_off]
-
         frames = np.arange(min_time, max_time + 1, dtype=np.int32) * frame_interval
         track_ids = np.ones(len(frames), dtype=np.int32) * t_id
+
+        pos_xy = _brownian_xy(
+            len(frames),
+            diffusion=diffusion,
+            x_rng=x_rng,
+            y_rng=y_rng,
+            frame_interval=frame_interval,
+        )
 
         df = pd.DataFrame(pos_xy, columns=coords)
         df.insert(0, frame, frames)
@@ -36,9 +46,24 @@ def brownian(
 
         res.append(df)
 
-    brownian_track = pd.concat(res, axis=0)
+    brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
     return brownian_track
+
+
+def _linear_xy(
+    n, velocity=1, x_rng=(0, 100), y_rng=(0, 100),
+):
+    x_off = np.random.rand() * (x_rng[1] - x_rng[0]) + x_rng[0]
+    y_off = np.random.rand() * (y_rng[1] - y_rng[0]) + x_rng[1]
+
+    xy_direction = np.random.randn(1, 2)
+    xy_direction = xy_direction / np.linalg.norm(xy_direction) * velocity
+
+    pos_xy = np.tile(xy_direction, (n, 1))
+    pos_xy = np.cumsum(pos_xy, axis=0) + [y_off, x_off]
+
+    return pos_xy
 
 
 def linear(
@@ -53,18 +78,13 @@ def linear(
 
     res = []
     for t_id in range(n_tracks):
-
-        x_off = np.random.rand() * (x_rng[1] - x_rng[0]) + x_rng[0]
-        y_off = np.random.rand() * (y_rng[1] - y_rng[0]) + x_rng[1]
-
         frames = np.arange(min_time, max_time + 1, dtype=np.int32) * frame_interval
         track_ids = np.ones(len(frames), dtype=np.int32) * t_id
 
         xy_direction = np.random.randn(1, 2)
         xy_direction = xy_direction / np.linalg.norm(xy_direction) * velocity
 
-        pos_xy = np.tile(xy_direction, (len(frames), 1))
-        pos_xy = np.cumsum(pos_xy, axis=0) + [y_off, x_off]
+        pos_xy = _linear_xy(len(frames), velocity=velocity, x_rng=x_rng, y_rng=y_rng)
 
         df = pd.DataFrame(pos_xy, columns=coords)
         df.insert(0, frame, frames)
@@ -72,6 +92,69 @@ def linear(
 
         res.append(df)
 
-    brownian_track = pd.concat(res, axis=0)
+    brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
     return brownian_track
+
+
+def brownian_linear(diffusion=1, velocity=1, **kwargs):
+    b = brownian(diffusion=diffusion, **kwargs)
+    l = linear(velocity=velocity, **kwargs)
+
+    trj = b
+    trj[coords] += l[coords]
+    return trj
+
+
+def saltatory(
+    n_tracks,
+    n_pauses=5,
+    diffusion=(1, 0),
+    velocity=(0, 1),
+    lengths=(20, 10),
+    x_rng=(0, 100),
+    y_rng=(0, 100),
+    frame_interval=1,
+):
+    res = []
+    for t_id in range(n_tracks):
+        p = _brownian_xy(lengths[0], diffusion=diffusion[0], x_rng=x_rng, y_rng=y_rng)
+        cur_track = [p]
+        for p in range(n_pauses - 1):
+
+            l1 = _linear_xy(lengths[1], velocity=[1], x_rng=x_rng, y_rng=y_rng)
+            l2 = _brownian_xy(
+                lengths[1], diffusion=diffusion[1], x_rng=x_rng, y_rng=y_rng
+            )
+            l2 -= l2[0, :]
+
+            l = l1 + l2
+
+            l -= l[0, :]
+            l += cur_track[-1][-1, :]
+            cur_track.append(l)
+
+            p1 = _brownian_xy(
+                lengths[0], diffusion=diffusion[0], x_rng=x_rng, y_rng=y_rng
+            )
+            p2 = _linear_xy(lengths[0], velocity=[0], x_rng=x_rng, y_rng=y_rng)
+            p2 -= p2[0, :]
+
+            p = p1 + p2
+
+            p -= p[0, :]
+            p += cur_track[-1][-1, :]
+            cur_track.append(p)
+
+        pos_xy = np.concatenate(cur_track, axis=0)
+        frames = np.arange(0, len(pos_xy), dtype=np.int32) * frame_interval
+        track_ids = np.ones(len(frames), dtype=np.int32) * t_id
+
+        df = pd.DataFrame(pos_xy, columns=coords)
+        df.insert(0, frame, frames)
+        df.insert(0, trackid, track_ids)
+
+        res.append(df)
+
+    return pd.concat(res, axis=0).reset_index(drop=True)
+
