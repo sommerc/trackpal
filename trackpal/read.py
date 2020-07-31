@@ -1,11 +1,33 @@
-import numpy
+"""Reading tracks from Imaris (.csv) and TrackMate (.xml)
 
-np = numpy
-import pandas
+    .. highlight:: python
+    .. code-block:: python
 
-pd = pandas
+        import sys
+        ...
+
+"""
 import pathlib
+
+import numpy as np
+import pandas as pd
+
+from collections import namedtuple
+
 from xml.etree import cElementTree as ET
+
+# track_info = namedtuple(
+#     "TrackInfo",
+#     [
+#         "coords",
+#         "trackid",
+#         "frameid",
+#         "timeid",
+#         "space_unit",
+#         "time_unit",
+#         "frame_interval",
+#     ],
+# )
 
 
 def trackmate_xml_tracks(fn):
@@ -46,12 +68,12 @@ def trackmate_xml_tracks(fn):
 
 def imaris_tracks(fn):
     """Reads tracks from images csv file and returns a DataFrame"""
-    data = pandas.read_csv(fn, skiprows=3, sep=",",)
+    data = pd.read_csv(fn, skiprows=3, sep=",",)
     data = data[data.TrackID.notna()]
     cols = ["Position X", "Position Y", "Position Z", "Time"]
 
     for c in cols:
-        data[c] = pandas.to_numeric(data[c])
+        data[c] = pd.to_numeric(data[c])
     data = data.sort_values(["TrackID", "Time"])
 
     data["FRAME"] = data["Time"]
@@ -96,4 +118,4 @@ def imaris_tracks_custom(in_dir):
 
                     all_data.append(cur_data)
 
-    return pandas.concat(all_data, axis=0)
+    return pd.concat(all_data, axis=0)

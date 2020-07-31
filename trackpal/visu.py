@@ -20,6 +20,21 @@ def plot_trj(
     alpha=None,
     start_end=(True, True),
 ):
+    """[summary]
+
+    Args:
+        trj (DataFrame): [description]
+        coords (list): The names of the x/y coodrinate column names
+        ax ([type], optional): [description]. Defaults to None.
+        scale (int, optional): [description]. Defaults to 10.
+        line_fmt (str, optional): [description]. Defaults to "x:".
+        line_color (str, optional): [description]. Defaults to "gray".
+        line_label (str, optional): [description]. Defaults to "Trajectory".
+        line_width ([type], optional): [description]. Defaults to None.
+        marker_size ([type], optional): [description]. Defaults to None.
+        alpha ([type], optional): [description]. Defaults to None.
+        start_end (tuple, optional): [description]. Defaults to (True, True).
+    """
     if not ax:
         ax = plt.gca()
     ax.plot(
