@@ -9,11 +9,11 @@ from scipy.optimize import curve_fit
 
 def plot_trj(
     trj,
-    coords,
+    coords=None,
     ax=None,
-    scale=10,
+    scale=None,
     line_fmt="x:",
-    line_color="gray",
+    line_color=None,
     line_label="Trajectory",
     line_width=None,
     marker_size=None,
@@ -37,6 +37,10 @@ def plot_trj(
     """
     if not ax:
         ax = plt.gca()
+
+    if not coords:
+        coords = trj.coords
+
     ax.plot(
         *(trj[coords].values.T),
         line_fmt,

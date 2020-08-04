@@ -1,10 +1,42 @@
-import pandas
-import numpy
-
-np = numpy
+import numpy as np
 import statsmodels.api as sm
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
+
+from collections import namedtuple
+
+META_ATTR = {
+    "track": "TrackID",
+    "frame": "FRAME",
+    "time": "TIME",
+    "xy": ["Position X", "Position Y"],
+}
+
+IdAttrs = namedtuple("IDsTrackPal", META_ATTR.keys())
+IdAttrs.__new__.__defaults__ = tuple(META_ATTR.values())
+
+IdDefaults = IdAttrs()
+
+
+def clone_meta_attr(df_func):
+    def wrapper(df_or_list, *args, **kwargs):
+        if isinstance(df_or_list, (list, tuple)):
+            assert len(df_or_list) > 0, "Concatenation of empty list"
+            df = df_or_list[0]
+        else:
+            df = df_or_list
+
+        res_df = df_func(df_or_list, *args, **kwargs)
+        if hasattr(df, "id"):
+            setattr(res_df, "id", getattr(df, "id"))
+        return res_df
+
+    return wrapper
+
+
+def set_meta_attr(df, attr=IdDefaults):
+    setattr(df, "id", attr)
+    return df
 
 
 def defdict2array(defdict, agg=np.mean):
@@ -51,6 +83,10 @@ def fit_parabola(x, y, clip=0.25):
     r2 = 1 - (ss_res / ss_tot)
 
     return D, V2, r2
+
+
+def blub():
+    pass
 
 
 def fit_line(taus, msd, sem, clip_first=0.25):

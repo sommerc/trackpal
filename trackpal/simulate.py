@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 
-frameid = "frameid"
-timeid = ""
+from .utils import set_meta_attr, IdDefaults
 
-coords = ["Position X", "Position Y"]
-trackid = "TrackID"
+coords = IdDefaults.xy
+trackid = IdDefaults.track
+frameid = IdDefaults.frame
 
 
 def _brownian_xy(n, diffusion=1, xs_rng=(0, 100), ys_rng=(0, 100), frame_interval=1):
@@ -50,7 +50,7 @@ def brownian(
 
     brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
-    return brownian_track
+    return set_meta_attr(brownian_track)
 
 
 def _linear_xy(
@@ -98,15 +98,17 @@ def linear(
 
     brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
-    return brownian_track
+    return set_meta_attr(brownian_track)
 
 
 def brownian_linear(diffusion=1, velocity=1, **kwargs):
     b = brownian(diffusion=diffusion, **kwargs)
-    l = linear(velocity=velocity, **kwargs)
+    l = linear(velocity=velocity, xs_rng=(0, 0), ys_rng=(0, 0), **kwargs)
 
     trj = b
+
     trj[coords] += l[coords]
+
     return trj
 
 
@@ -168,5 +170,5 @@ def saltatory(
 
         res.append(df)
 
-    return pd.concat(res, axis=0).reset_index(drop=True)
+    return set_meta_attr(pd.concat(res, axis=0).reset_index(drop=True))
 

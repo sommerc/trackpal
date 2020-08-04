@@ -80,11 +80,11 @@ class VACstats(TrajectoryFeature):
 
 
 class SpeedStats(TrajectoryFeature):
-    name = "speed"
+    name = "speed_stats"
 
     def compute(self, trj, min_trj_len=2):
 
-        displacements = velocity.compute_velocities(trj, self.coords, self.frame)
+        displacements = velocity.displacement(trj, self.coords, self.frame)
 
         speeds = (
             np.linalg.norm(displacements[self.coords], axis=1)
