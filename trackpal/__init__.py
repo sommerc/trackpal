@@ -1,17 +1,55 @@
 """#TrackPal: Tracking Python AnaLyzer
 
-A modular library for the analysis of 2D tracks in Python with pandas.
+A modular library for the analysis of object trackings in Python with pandas.
 
 ## Overview
 
-Tracks are represented as a pandas DataFrame with a minium of 4 columns
+### Track representation
 
-## Example:
+Tracks are represented as a (stacked) pandas DataFrame with a minium of 5 columns for:
+
+* TrackID
+* FrameID
+* Position for X and Y coordinates
+* TimeID
+
+Each track must have an unique TrackID.
+
+More columns can be added to store additional information.
+
+A loaded or a simulated data set contains an attribute `id` which holds the
+identifiers to access the columns.
+
+The default identifiers are:
+
+* TrackID: `"track"`
+* FrameID: `"frame"`
+* Position for X and Y coordinates: `"xy"`
+* TimeID `"time"`
+
+
+```python
+import trackpal as tp
+
+trj = tp.simulate.brownian(n_tracks=1)
+trj[trj.id.xy] # xy coordinates of track
+```
+
+### General
+For most computations trackpal relies on pandas `groupby` and `apply` mechanism.
+
+`TrackPal` does not track or link objects. It analyzes already tracked objects.
+For obtaining object trackings from images or detections see for instance the
+excellent projects [TrackMate](https://imagej.net/TrackMate),
+[trackpy](http://soft-matter.github.io/trackpy) or [ilastik](ilastik.org)
+
+## Examples:
+
+### Simulate and plot tracks
 
 ```python
 import pandas as pd
 import trackpal as tp
-
 
 trj_brownian = tp.simulate.brownian(n_tracks=10)
 trj_linear = tp.simulate.brownian_linear(n_tracks=10)
@@ -47,36 +85,10 @@ features = pd.concat([conf_ratio_res, speed_stats_res, y], axis=1)
 features.plot.scatter(
     x="confinement_ratio", y="speed_stats_mean", c="label", cmap="coolwarm"
 )
-
-
-
 ```
 
-
-
-##
-
-
-## Submodules:
-
-* `trackpal.read`: reading from comma separated text files (.csv) from Imaris and from (.xml) TrackMate
-
-* `trackpal.simulate`: simulate brownian, linear and saltatory motion
-
-* `trackpal.features`: compute feature descriptors for tracks for subsequent analysis
-
-* `trackpal.visu`: visualize tracks
-
-* `trackpal.drift`: correct for drift
-
-* `trackpal.msd`:
-    mean squared displacement curves
-
-* `trackpal.msd`:
-    velocity autocorrelation curves
-
-
-Source code and issue tracker: [on github](https://www.github.com/sommerc/trackpal)
+## Source code and issue tracker:
+[on github](https://www.github.com/sommerc/trackpal)
 
 
 """
@@ -99,11 +111,11 @@ import numpy as np
 import pandas as pd
 from itertools import count
 
-from .utils import clone_meta_attr
+from .utils import clone_id_attr
 from . import drift, features, fit, msd, read, velocity, version, visu, simulate
 
 
-@clone_meta_attr
+@clone_id_attr
 def concat_relabel(trj_list, trackid=None):
     if hasattr(trj_list[0], "trackid"):
         trackid = getattr(trj_list[0], "trackid")
