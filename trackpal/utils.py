@@ -1,3 +1,5 @@
+"""General helper and utility functions"""
+
 import numpy as np
 import statsmodels.api as sm
 from matplotlib import pyplot as plt
@@ -32,23 +34,6 @@ def clone_id_attr(df_func):
         return res_df
 
     return wrapper
-
-
-# @clone_id_attr
-def concat_relabel(trj_list, trackid=None):
-    if hasattr(trj_list[0], "trackid"):
-        trackid = getattr(trj_list[0], "trackid")
-    elif trackid is None:
-        from .simulate import trackid
-
-    cnt = count(start=0, step=1)
-    res = []
-    for i, trj in enumerate(trj_list):
-        for t_id in trj[trackid].unique():
-            cur_trj = trj.loc[trj[trackid] == t_id].copy()
-            cur_trj[trackid] = next(cnt)
-            res.append(cur_trj)
-    return pd.concat(res, axis=0, ignore_index=True).reset_index(drop=True)
 
 
 def set_meta_attr(df, attr=IdDefaults):

@@ -1,6 +1,11 @@
+"""Module for track feature descriptors.
+"""
+
 import numpy as np
 import pandas as pd
+
 from rdp import rdp
+
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import squareform
@@ -11,32 +16,48 @@ EPS = 10e-12
 
 
 class Features:
+    """Factory class for the creating of `TrackFeature`
+
+    """
+
     def __init__(self, coords, frame):
         self.coords = coords
         self.frame = frame
 
         self._lookup = {}
-        for klass in TrajectoryFeature.__subclasses__():
+        for klass in TrackFeature.__subclasses__():
             self._lookup[klass.name] = klass
 
-    def get(self, name, **kwargs):
+    def get(self, name):
+        """Retrieve track feature by name"""
         return self._lookup[name](coords=self.coords, frame=self.frame)
 
     @staticmethod
-    def list():
-        for klass in sorted(TrajectoryFeature.__subclasses__(), key=lambda k: k.name):
+    def list(verbose=False):
+        """List names of all available features
+        """
+        for klass in sorted(TrackFeature.__subclasses__(), key=lambda k: k.name):
             print(klass.name)
-            print(klass.compute.__doc__)
-            print()
+            if verbose:
+                print(klass.compute.__doc__)
 
 
-class TrajectoryFeature:
+class TrackFeature:
+    """Base class for all track features
+
+    """
+
     def __init__(self, coords, frame):
         self.coords = coords
         self.frame = frame
 
 
-class MSDParabola(TrajectoryFeature):
+class MSDParabola(TrackFeature):
+    """Fits a parabola to mean squared displacment curve of track and returns
+    fit parameters and \(R^2\)
+
+    """
+
     name = "msd_parabola"
 
     def compute(self, trj, clip=0.9, min_trj_len=3):
@@ -50,7 +71,18 @@ class MSDParabola(TrajectoryFeature):
         )
 
 
-class VACstats(TrajectoryFeature):
+class VACstats(TrackFeature):
+    """Computes velocity autocorrelation and returns statistics
+
+    * mean
+    * std
+    * min
+    * max
+
+    of the curve for delays \( > 0\)
+
+    """
+
     name = "vac_stats"
 
     def compute(self, trj, min_trj_len=3):
@@ -79,7 +111,15 @@ class VACstats(TrajectoryFeature):
             )
 
 
-class SpeedStats(TrajectoryFeature):
+class SpeedStats(TrackFeature):
+    """Compute several statistics of the instantaneous speed
+
+        * mean
+        * std
+        * min
+        * max
+    """
+
     name = "speed_stats"
 
     def compute(self, trj, min_trj_len=2):
@@ -106,7 +146,11 @@ class SpeedStats(TrajectoryFeature):
         )
 
 
-class ConfinementRatio(TrajectoryFeature):
+class ConfinementRatio(TrackFeature):
+    """Compute confinement ration as net distance divided by total distance travelled
+        $$\\frac{\\|x_n-x_1\\|}{\\sum_{i=1}^n \\|x_i\\|}$$
+    """
+
     name = "confinement_ratio"
 
     def compute(self, trj):
@@ -120,7 +164,11 @@ class ConfinementRatio(TrajectoryFeature):
         )
 
 
-class MeanStraightLineSpeed(TrajectoryFeature):
+class MeanStraightLineSpeed(TrackFeature):
+    """Compute mean straight line speed as net distance divided by total time
+        $$\\frac{\\|x_n-x_1\\|}{\\sum_{i=1}^n \\|\\Delta t_i\\|}$$
+    """
+
     name = "mean_straight_line_speed"
 
     def compute(self, trj):
@@ -134,7 +182,15 @@ class MeanStraightLineSpeed(TrajectoryFeature):
         )
 
 
-class EllipseFit(TrajectoryFeature):
+class GyrationTensor(TrackFeature):
+    """Compute gyration tensor by fitting an ellipse and extraction several measures
+
+    * axis lengths
+    * axis ratio
+    * radius \(R^2\)
+    * coherence
+    """
+
     name = "gyration_tensor"
 
     def compute(self, trj):
@@ -160,7 +216,10 @@ class EllipseFit(TrajectoryFeature):
         )
 
 
-class TrackDuration(TrajectoryFeature):
+class TrackDuration(TrackFeature):
+    """Duration of track
+    """
+
     name = "track_duration"
 
     def compute(self, trj):
@@ -169,7 +228,10 @@ class TrackDuration(TrajectoryFeature):
         )
 
 
-class TrackLength(TrajectoryFeature):
+class TrackLength(TrackFeature):
+    """Length of track
+    """
+
     name = "track_length"
 
     def compute(self, trj):
@@ -182,7 +244,10 @@ class TrackLength(TrajectoryFeature):
         )
 
 
-class VelocityAverage(TrajectoryFeature):
+class VelocityAverage(TrackFeature):
+    """Average velocity
+    """
+
     name = "velocity_average"
 
     def compute(self, trj):
@@ -193,7 +258,16 @@ class VelocityAverage(TrajectoryFeature):
         )
 
 
-class TrackDiameter(TrajectoryFeature):
+class TrackDiameter(TrackFeature):
+    """Statistics of the track diameter
+
+    * mean
+    * std
+    * max
+
+    of all pairwise distances of all positions in the track
+    """
+
     name = "track_diameter_stats"
 
     def compute(self, trj):
@@ -210,6 +284,14 @@ class TrackDiameter(TrajectoryFeature):
 
 
 def angles_from_displacements(disp_xy):
+    """Compute the angle in radians from track displacements
+
+    Args:
+        disp_xy (numpy.array): displacements [n x 2]
+
+    Returns:
+        numpy.array: angle in radioans [n x 1]
+    """
     a = []
     for i in range(len(disp_xy) - 1):
         v0 = disp_xy[i, :]
@@ -221,7 +303,14 @@ def angles_from_displacements(disp_xy):
     return a
 
 
-class RDP_simplification(TrajectoryFeature):
+class RDP_simplification(TrackFeature):
+    """Applies [Ramer–Douglas–Peucker](https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm) algorithm to simplify the track for given
+    epsilon and extracts:
+
+    * ratio of positions in simplified and original track
+    * mean and std directional change
+    """
+
     name = "rdp_simplification"
 
     def compute(self, trj, min_trj_len=3, eps=1):
@@ -244,7 +333,10 @@ class RDP_simplification(TrajectoryFeature):
         )
 
 
-class DirectionalChange(TrajectoryFeature):
+class DirectionalChange(TrackFeature):
+    """Compute statistics of the angle between two successive positions
+    """
+
     name = "directional_change_stats"
 
     def compute(self, trj):
@@ -272,7 +364,10 @@ class DirectionalChange(TrajectoryFeature):
         )
 
 
-class DirectionalChangeCount(TrajectoryFeature):
+class DirectionalChangeCount(TrackFeature):
+    """Count of angles exceeding 20, 45, or 90 degree angle turns
+    """
+
     name = "directional_change_count"
 
     def compute(self, trj):
@@ -290,8 +385,38 @@ class DirectionalChangeCount(TrajectoryFeature):
         return res
 
 
-class PartitionFeature(TrajectoryFeature):
-    name = "moving_tracklet"
+class PartitionFeature(TrackFeature):
+    """Compute features based on spatio-temporal clustering with DBSCAN.
+
+        Track is partitioned by `partition_dbscann` and features of stationary
+        (dwelling) and moving tracklets are computed.
+
+        For the stationary part:
+
+        * partition_dwell_state_count
+        * partition_dwell_state_total_duration
+        * partition_dwell_state_relative_duration
+        * partition_dwell_between_state_duration_mean
+        * partition_dwell_between_state_duration_max
+        * partition_dwell_between_state_length_mean
+        * partition_dwell_between_state_length_max
+
+        For the moving tracklets
+
+        * partition_moving_speed_stats_mean__mean
+        * partition_moving_speed_stats_std__mean
+        * partition_moving_speed_stats_min__mean
+        * partition_moving_speed_stats_max__mean
+        * partition_moving_gyration_tensor_minor_axis_length__mean
+        * partition_moving_gyration_tensor_major_axis_length__mean
+        * partition_moving_gyration_tensor_axis_ratio__mean
+        * partition_moving_gyration_tensor_radius__mean
+        * partition_moving_gyration_tensor_coherence__mean
+        * partition_moving_directional_change_mean__mean
+
+    """
+
+    name = "partition"
 
     def compute(self, trj, eps=6, t_scale=1.0):
 
@@ -364,13 +489,13 @@ class PartitionFeature(TrajectoryFeature):
         SS = SpeedStats(self.coords, self.frame)
         speed_vals = pd.concat([SS.compute(st) for st in sub_trajectoris], axis=1)
         for key, vals in speed_vals.iterrows():
-            res[f"{self.name}__{key}__mean"] = vals.mean()
+            res[f"{self.name}_moving_{key}__mean"] = vals.mean()
 
-        ELF = EllipseFit(self.coords, self.frame)
+        ELF = GyrationTensor(self.coords, self.frame)
         elf_vals = pd.concat([ELF.compute(st) for st in sub_trajectoris], axis=1)
 
         for key, vals in elf_vals.iterrows():
-            res[f"{self.name}__{key}__mean"] = vals.mean()
+            res[f"{self.name}_moving_{key}__mean"] = vals.mean()
 
         # Directonal change
         dc_vals = np.array(
@@ -388,6 +513,17 @@ class PartitionFeature(TrajectoryFeature):
 
 
 def partition_dbscann(p, t, eps, t_scale=1.0):
+    """Partition track by spatio-temporal clustering using DBSCAN
+
+    Args:
+        p (numpy.array): xy location
+        t (numpy.array): times
+        eps (float): DBSCAN epsilon
+        t_scale (float, optional): [description]. Defaults to 1.0.
+
+    Returns:
+        numpy.array: DBSCAN label assingment
+    """
     X = np.c_[p, t * t_scale]
     clustering = DBSCAN(eps).fit(X)
     labels = clustering.labels_
@@ -395,8 +531,9 @@ def partition_dbscann(p, t, eps, t_scale=1.0):
     return labels
 
 
-# helper function for visualizaiton
 def partition_get_moving_part(trj, eps, t_scale, coords, frame):
+    """Helper function for visualization
+    """
     p = trj[coords].values
     t = trj[frame].values
     dt = np.diff(t)

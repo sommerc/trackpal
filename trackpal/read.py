@@ -1,11 +1,4 @@
 """Reading tracks from Imaris (.csv) and TrackMate (.xml)
-
-    .. highlight:: python
-    .. code-block:: python
-
-        import sys
-        ...
-
 """
 import pathlib
 
@@ -15,19 +8,6 @@ import pandas as pd
 from collections import namedtuple
 
 from xml.etree import cElementTree as ET
-
-# track_info = namedtuple(
-#     "TrackInfo",
-#     [
-#         "coords",
-#         "trackid",
-#         "frameid",
-#         "timeid",
-#         "space_unit",
-#         "time_unit",
-#         "frame_interval",
-#     ],
-# )
 
 
 def trackmate_xml_tracks(fn):

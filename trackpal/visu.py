@@ -1,10 +1,6 @@
-import pandas
-import numpy
+"""Track visualization"""
 
-np = numpy
-import statsmodels.api as sm
 from matplotlib import pyplot as plt
-from scipy.optimize import curve_fit
 
 
 def plot_trj(
@@ -23,17 +19,17 @@ def plot_trj(
     """[summary]
 
     Args:
-        trj (DataFrame): [description]
+        trj (pandas.DataFrame): tracks to plot
         coords (list): The names of the x/y coodrinate column names
-        ax ([type], optional): [description]. Defaults to None.
-        scale (int, optional): [description]. Defaults to 10.
-        line_fmt (str, optional): [description]. Defaults to "x:".
-        line_color (str, optional): [description]. Defaults to "gray".
-        line_label (str, optional): [description]. Defaults to "Trajectory".
-        line_width ([type], optional): [description]. Defaults to None.
-        marker_size ([type], optional): [description]. Defaults to None.
-        alpha ([type], optional): [description]. Defaults to None.
-        start_end (tuple, optional): [description]. Defaults to (True, True).
+        ax (optional): matplotlib axes to plot in. Defaults to None.
+        scale (int, optional): length of scale bar. Defaults to 10.
+        line_fmt (str, optional): Defaults to "x:".
+        line_color (str, optional): Defaults to "gray".
+        line_label (str, optional): Defaults to "Trajectory".
+        line_width ([type], optional): Defaults to None.
+        marker_size ([type], optional): Defaults to None.
+        alpha ([type], optional): Defaults to None.
+        start_end (tuple, optional): Show marker for start/end of track. Defaults to (True, True).
     """
     if not ax:
         ax = plt.gca()
