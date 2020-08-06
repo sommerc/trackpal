@@ -1,4 +1,5 @@
-"""Velocity auto-correlation"""
+"""Velocity auto-correlation
+"""
 
 import numpy as np
 import pandas as pd

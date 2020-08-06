@@ -1,5 +1,4 @@
 """Mean square displacement
-
 """
 
 import numpy as np
@@ -12,13 +11,7 @@ from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
 
 
-def defdict2array(defdict, agg=np.mean):
-    tau = np.zeros(len(defdict), dtype=int)
-    arr = np.zeros(len(defdict), dtype=np.float32)
-    for i, (k, v) in enumerate(sorted(defdict.items())):
-        tau[i] = k
-        arr[i] = agg(defdict[k])
-    return tau, arr
+from .utils import defdict2array
 
 
 def per_track(trajectory, coords, frame="FRAME"):

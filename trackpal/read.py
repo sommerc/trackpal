@@ -15,10 +15,10 @@ def trackmate_xml_tracks(fn):
        plus other additional data info
 
     Args:
-        [str] fn (file name): [description]
+        fn (str): file name
 
     Returns:
-        [type]: [description]
+        pandas.DataFrame: tracks
     """
 
     tracks = ET.parse(fn)
@@ -47,7 +47,16 @@ def trackmate_xml_tracks(fn):
 
 
 def imaris_tracks(fn):
-    """Reads tracks from images csv file and returns a DataFrame"""
+    """Reads tracks from imars csv track file and returns a DataFrame
+       plus other additional data info
+
+    Args:
+        fn (str): file name
+
+    Returns:
+        pandas.DataFrame: tracks
+    """
+
     data = pd.read_csv(fn, skiprows=3, sep=",",)
     data = data[data.TrackID.notna()]
     cols = ["Position X", "Position Y", "Position Z", "Time"]
@@ -68,34 +77,3 @@ def imaris_tracks(fn):
     del data["index"]
     return data
 
-
-def imaris_tracks_custom(in_dir):
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-
-        root = pathlib.Path(in_dir)
-        all_data = []
-        trackid = 0
-        for d in root.glob("**/*"):
-            if d.is_file() and d.name.endswith(".csv"):
-                treatment = d.stem.split("_")[-1]
-                if treatment == "Control":
-                    treatment = treatment.lower()
-
-                print("Reading file", d.name)
-                data = imaris_tracks(d.absolute())
-
-                data["Group"] = treatment
-                data["Slice"] = d.stem
-
-                for tid in data["TrackID"].unique():
-
-                    cur_data = data.loc[data["TrackID"] == tid]
-                    cur_data["TrackID"] = trackid
-                    trackid += 1
-
-                    all_data.append(cur_data)
-
-    return pd.concat(all_data, axis=0)

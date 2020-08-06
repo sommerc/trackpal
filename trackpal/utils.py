@@ -1,5 +1,4 @@
 """General helper and utility functions
-
 """
 
 import numpy as np
@@ -8,6 +7,7 @@ from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
 from collections import namedtuple
+from functools import wraps
 
 META_ATTR = {
     "track": "TrackID",
@@ -23,6 +23,7 @@ IdDefaults = IdAttrs()
 
 
 def clone_id_attr(df_func):
+    @wraps(df_func)
     def wrapper(df_or_list, *args, **kwargs):
         if isinstance(df_or_list, (list, tuple)):
             assert len(df_or_list) > 0, "Concatenation of empty list"

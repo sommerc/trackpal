@@ -1,3 +1,6 @@
+"""Simulate 2D tracks with various motion types
+"""
+
 import numpy as np
 import pandas as pd
 
@@ -27,6 +30,20 @@ def brownian(
     ys_rng=(0, 100),
     frame_interval=1,
 ):
+    """[summary]
+
+    Args:
+        n_tracks (int, optional):  Defaults to 20.
+        min_time (int, optional):  Defaults to 0.
+        max_time (int, optional):  Defaults to 42.
+        diffusion (int, optional):  Defaults to 1.
+        xs_rng (tuple, optional):  Defaults to (0, 100).
+        ys_rng (tuple, optional):  Defaults to (0, 100).
+        frame_interval (int, optional):  Defaults to 1.
+
+    Returns:
+        pandas.DataFrame: tracks
+    """
 
     res = []
     for t_id in range(n_tracks):
@@ -77,6 +94,20 @@ def linear(
     ys_rng=(0, 100),
     frame_interval=1,
 ):
+    """Simulate pure linear motion
+
+    Args:
+        n_tracks (int, optional): Defaults to 20.
+        min_time (int, optional): Defaults to 0.
+        max_time (int, optional): Defaults to 42.
+        velocity (int, optional): Defaults to 1.
+        xs_rng (tuple, optional): Defaults to (0, 100).
+        ys_rng (tuple, optional): Defaults to (0, 100).
+        frame_interval (int, optional): Defaults to 1.
+
+    Returns:
+        pandas.DataFrame: tracks
+    """
 
     res = []
     for t_id in range(n_tracks):
@@ -102,6 +133,15 @@ def linear(
 
 
 def brownian_linear(diffusion=1, velocity=1, **kwargs):
+    """Simulate mixed linear and brownian motion
+
+    Args:
+        diffusion (int, optional):  Defaults to 1.
+        velocity (int, optional):  Defaults to 1.
+
+    Returns:
+        pandas.DataFrame: tracks
+    """
     b = brownian(diffusion=diffusion, **kwargs)
     l = linear(velocity=velocity, xs_rng=(0, 0), ys_rng=(0, 0), **kwargs)
 
@@ -124,6 +164,23 @@ def saltatory(
     ys_rng=(0, 100),
     frame_interval=1,
 ):
+    """Simulate tracks with saltatory motion
+
+    Args:
+        n_tracks (int):
+        n_pauses (int, optional):  Defaults to 5.
+        diffusion_pause (float, optional):  Defaults to 0.1.
+        diffusion_moving (float, optional):  Defaults to 0.05.
+        velocity_pause (int, optional):  Defaults to 0.
+        velocity_moving (int, optional):  Defaults to 1.
+        lengths (tuple, optional):  Defaults to (20, 10).
+        xs_rng (tuple, optional):  Defaults to (0, 100).
+        ys_rng (tuple, optional):  Defaults to (0, 100).
+        frame_interval (int, optional):  Defaults to 1.
+
+    Returns:
+        pandas.DataFrame: tracks
+    """
     res = []
     for t_id in range(n_tracks):
         p1 = _brownian_xy(

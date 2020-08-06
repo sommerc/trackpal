@@ -54,8 +54,7 @@ class TrackFeature:
 
 class MSDParabola(TrackFeature):
     """Fits a parabola to mean squared displacment curve of track and returns
-    fit parameters and \(R^2\)
-
+    fit parameters and \( R^2 \)
     """
 
     name = "msd_parabola"

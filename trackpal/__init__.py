@@ -49,7 +49,7 @@ The following types of tracks are supported:
 * mixed brownian and linear
 * saltatory motion
 
-Example:
+Examples:
 ```python
 import trackpal as tp
 
@@ -98,8 +98,16 @@ from .utils import clone_id_attr
 from . import features, fit, msd, read, velocity, version, visu, simulate
 
 
-@clone_id_attr
 def concat_relabel(trj_list, trackid=None):
+    """Concatenates tracks and sequentially relabels the track id
+
+    Args:
+        trj_list (list[pandas.DataFrame]): List of tracks to concatenate
+        trackid (str, optional): trackid column identifier. Defaults to None.
+
+    Returns:
+        pandas.DataFrame: Concatenated DataFrame with unqiue track ids
+    """
     if hasattr(trj_list[0], "trackid"):
         trackid = getattr(trj_list[0], "trackid")
     elif trackid is None:

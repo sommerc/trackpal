@@ -1,3 +1,7 @@
+"""Helper functions for fitting lines and parabolas.
+
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -7,10 +11,30 @@ from scipy.optimize import curve_fit
 
 
 def parabola_function(t, D, V):
+    """Parabola
+
+    Args:
+        t (numpy.array): [description]
+        D ([type]): [description]
+        V ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     return D * t + V * (t ** 2)
 
 
 def parabola(x, y, clip=0.25):
+    """Fit a quadratic function
+
+    Args:
+        x (numpy.array): x-values
+        y (numpy.array): y-values
+        clip (float, optional): Fit only first part. Defaults to 0.25.
+
+    Returns:
+        pandas.Series: fit parameters
+    """
     if 0 < clip <= 1:
         clip_int = int(len(x) * clip)
     else:
@@ -35,17 +59,27 @@ def parabola(x, y, clip=0.25):
     return pd.Series({"D": D, "velocity": np.sqrt(V2), "r2": r2})
 
 
-def line(taus, msd, sem=None, clip_first=0.25):
-    if 0 < clip_first < 1:
-        clip_int = int(len(taus) * clip_first) - 1
+def line(x, y, weights=None, clip=0.25):
+    """Fit a line
+
+    Args:
+        x (numpy.array): x-values
+        y (numpy.array): y-values
+        clip (float, optional): Fit only first part. Defaults to 0.25.
+
+    Returns:
+        pandas.Series: fit parameters
+    """
+    if 0 < clip < 1:
+        clip_int = int(len(x) * clip) - 1
     else:
         clip_int = int(clip_int)
 
     # clip data for fit to only use first part
-    X = taus[:clip_int]
-    Y = msd[:clip_int]
-    if sem:
-        W = 1 / sem[:clip_int]
+    X = x[:clip_int]
+    Y = y[:clip_int]
+    if weights:
+        W = 1 / weights[:clip_int]
     else:
         W = np.ones((len(X)))
 
