@@ -5,11 +5,17 @@ A modular library for the analysis of object trackings in Python with pandas.
 ## Overview
 ### Main features
 * Read Imaris / TrackMate files
-* Simulate motion types
-* Compute track feature descriptors (~50 availabe features)
+* Simulate tracks with different motion types
+* Compute track feature descriptors (~50 available features)
 * Mean squared displacment curves for single tracks and ensembles
 * Velocity autocorrelation curves for single tracks and ensembles
 * Visualization utilities
+
+### Disclaimer
+`TrackPal` does not track or link objects. It analyzes already tracked objects.
+For obtaining object trackings from images or detections see for instance the
+excellent projects [TrackMate](https://imagej.net/TrackMate),
+[trackpy](http://soft-matter.github.io/trackpy) or [ilastik](ilastik.org)
 
 ## Examples
 ```python
@@ -36,7 +42,8 @@ Output:
 0. Install Anaconda Python (>=3.6) and create new environment
 1. `git clone` this repostiory
 2. `cd trackpal`
-3. pip install -e .
+3. `pip install -e .`
+
 
 ## Documentation
 
