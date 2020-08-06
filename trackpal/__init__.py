@@ -28,17 +28,7 @@ The default identifiers are:
 * TimeID `"time"`
 
 
-```python
-import trackpal as tp
 
-trj = tp.simulate.brownian_linear(n_tracks=10)
-
-# plot as lines
-trj.groupby(trj.trackid).apply(
-    tp.visu.plot_trj, coords=trj.xy, line_fmt=".-",
-)
-```
-![](https://git.ist.ac.at/csommer/trackpal/-/blob/master/doc/img/bl_tracks_01.png "Output")
 
 ### General
 For most computations trackpal relies on pandas `groupby` and `apply` mechanism.
@@ -50,19 +40,43 @@ excellent projects [TrackMate](https://imagej.net/TrackMate),
 
 ## Examples:
 
+### Simulate tracks
+The following types of tracks are supported:
+
+* brownian motion (Gaussian random walk)
+* linear motion
+* mixed brownian and linear
+* saltatory motion
+
+Example:
+```python
+import trackpal as tp
+
+trj = tp.simulate.brownian_linear(n_tracks=10)
+
+# plot as lines
+trj.groupby(trj.trackid).apply(
+    tp.visu.plot_trj, coords=trj.xy, line_fmt=".-",
+)
+```
+
+Output:
+![](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png "Output")
+
 ### Track features
 
-* Simulate different motion types and compute track feautres [notebook](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/01_track_features.ipynb)
+* Simulate different motion types and compute track feautres
+    * [notebook](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/01_track_features.ipynb)
 
 
 ## Source code and issue tracker:
-[on github](https://www.github.com/sommerc/trackpal)
+[on github](https://git.ist.ac.at/csommer/trackpal/-/raw/c4ea8ca1245bc42bf1f094f102da45e325a7ef0d/doc/img/bl_tracks_01.png )
 
 
 """
 
 __all__ = [
-    "drift",
+    # "drift", ##TODO
     "features",
     "fit",
     "msd",
@@ -80,7 +94,7 @@ import pandas as pd
 from itertools import count
 
 from .utils import clone_id_attr
-from . import drift, features, fit, msd, read, velocity, version, visu, simulate
+from . import features, fit, msd, read, velocity, version, visu, simulate
 
 
 @clone_id_attr
