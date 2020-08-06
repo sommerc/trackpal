@@ -1,6 +1,10 @@
-"""#TrackPal: Tracking Python AnaLyzer
+"""# TrackPal: Tracking Python AnaLyzer
 
 A modular library for the analysis of object trackings in Python with pandas.
+
+## Installation
+
+[on github](https://git.ist.ac.at/csommer/trackpal/)
 
 ## Overview
 
@@ -26,9 +30,6 @@ The default identifiers are:
 * FrameID: `"frame"`
 * Position for X and Y coordinates: `"xy"`
 * TimeID `"time"`
-
-
-
 
 ### General
 For most computations trackpal relies on pandas `groupby` and `apply` mechanism.
@@ -70,7 +71,7 @@ Output:
 
 
 ## Source code and issue tracker:
-[on github](https://git.ist.ac.at/csommer/trackpal/-/raw/c4ea8ca1245bc42bf1f094f102da45e325a7ef0d/doc/img/bl_tracks_01.png )
+[on github](https://git.ist.ac.at/csommer/trackpal/)
 
 
 """

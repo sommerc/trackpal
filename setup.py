@@ -29,6 +29,7 @@ setup(
         "statsmodels",
         "matplotlib",
         "rdp",
+        "tqdm",
     ],
 )
 
