@@ -11,7 +11,8 @@ A modular library for the analysis of object trackings in Python with pandas.
 * Velocity autocorrelation curves for single tracks and ensembles
 * Visualization utilities
 
-### Disclaimer
+For most computations trackpal relies on pandas `groupby` and `apply` mechanism.
+
 `TrackPal` does not track or link objects. It analyzes already tracked objects.
 For obtaining object trackings from images or detections see for instance the
 excellent projects [TrackMate](https://imagej.net/TrackMate),
