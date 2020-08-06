@@ -11,6 +11,7 @@ example_data/
 *.WDBIIF011
 *.WDBIIF016
 *.json
+*.ipynb
 *.png
 *.npz
 *.h5
