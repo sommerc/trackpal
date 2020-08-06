@@ -1,4 +1,6 @@
-"""General helper and utility functions"""
+"""General helper and utility functions
+
+"""
 
 import numpy as np
 import statsmodels.api as sm
