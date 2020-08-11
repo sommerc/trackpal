@@ -6,9 +6,12 @@ import pandas as pd
 
 from rdp import rdp
 
+from skimage.measure import label
 from sklearn.cluster import DBSCAN
-from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import squareform
+from sklearn.metrics import pairwise_distances
+from scipy.ndimage.morphology import binary_dilation
+from skimage.morphology import remove_small_objects
 
 from . import msd, utils, velocity
 
@@ -423,27 +426,17 @@ class PartitionFeature(TrackFeature):
         t = trj[self.frame].values
         dt = np.diff(t)
 
-        labels = partition_dbscann(p, t, eps, t_scale=t_scale,) + 1
+        # partition into labels
+        labels = self.partition_dbscann(p, t, eps, t_scale=t_scale,) + 1
 
-        from skimage.measure import label
-        from scipy.ndimage.morphology import binary_dilation
-        from skimage.morphology import remove_small_objects
+        # get centroid index to extract dwell features
+        dwell_center_idx = self.dwell_centroid_idx(labels)
+        dwell_center_pos = [p[c, :] for c in dwell_center_idx]
+        sdwell_center_time = [t[c] for c in dwell_center_idx]
 
-        sub_track_indecies = []
-        unique_labels = set(labels)
-        for u in unique_labels:
-            if u > 0:
-                sub_track_indecies.append(np.nonzero(labels == u)[0])
-
-        sub_track_center_idx = [int(sti.mean()) for sti in sub_track_indecies]
-        sub_track_center_pos = [p[c, :] for c in sub_track_center_idx]
-        sub_track_center_time = [t[c] for c in sub_track_center_idx]
-
-        if len(unique_labels) > 2:
-            between_times = np.diff(sub_track_center_time)
-            between_dists = np.linalg.norm(
-                np.diff(sub_track_center_pos, axis=0), axis=1
-            )
+        if len(dwell_center_idx) > 2:
+            between_times = np.diff(sdwell_center_time)
+            between_dists = np.linalg.norm(np.diff(dwell_center_pos, axis=0), axis=1)
 
         else:
             between_times = 0
@@ -460,38 +453,18 @@ class PartitionFeature(TrackFeature):
             f"{self.name}_dwell_between_state_length_max": np.max(between_dists),
         }
 
-        labels = labels == 0
-        labels = remove_small_objects(labels, 3)
-        labels = label(labels)
+        sub_trajectories = self.moving_sub_tracks(trj, labels, self.coords, self.frame)
 
-        sub_track_indecies = []
-        unique_labels = set(labels)
-        for u in unique_labels:
-            if u > 0:
-                sub_track_indecies.append(np.nonzero(labels == u)[0])
-
-        sub_track_pos = [p[sti, :] for sti in sub_track_indecies]
-        sub_track_time = [t[sti] for sti in sub_track_indecies]
-
-        sub_trajectoris = [
-            pd.DataFrame(
-                {self.coords[0]: p[:, 0], self.coords[1]: p[:, 1], self.frame: t}
-            )
-            for p, t in zip(sub_track_pos, sub_track_time)
-        ]
-
-        sub_trajectoris = [st for st in sub_trajectoris if len(st > 3)]
-
-        if len(sub_trajectoris) == 0:
-            sub_trajectoris = [trj]
+        if len(sub_trajectories) == 0:
+            sub_trajectories = [trj]
 
         SS = SpeedStats(self.coords, self.frame)
-        speed_vals = pd.concat([SS.compute(st) for st in sub_trajectoris], axis=1)
+        speed_vals = pd.concat([SS.compute(st) for st in sub_trajectories], axis=1)
         for key, vals in speed_vals.iterrows():
             res[f"{self.name}_moving_{key}__mean"] = vals.mean()
 
         ELF = GyrationTensor(self.coords, self.frame)
-        elf_vals = pd.concat([ELF.compute(st) for st in sub_trajectoris], axis=1)
+        elf_vals = pd.concat([ELF.compute(st) for st in sub_trajectories], axis=1)
 
         for key, vals in elf_vals.iterrows():
             res[f"{self.name}_moving_{key}__mean"] = vals.mean()
@@ -502,7 +475,7 @@ class PartitionFeature(TrackFeature):
                 np.mean(
                     angles_from_displacements(st[self.coords].diff().dropna().values)
                 )
-                for st in sub_trajectoris
+                for st in sub_trajectories
             ]
         )
 
@@ -510,44 +483,77 @@ class PartitionFeature(TrackFeature):
 
         return pd.Series(res)
 
+    @staticmethod
+    def partition_dbscann(p, t, eps, t_scale=1.0):
+        """Partition track by spatio-temporal clustering using DBSCAN
 
-def partition_dbscann(p, t, eps, t_scale=1.0):
-    """Partition track by spatio-temporal clustering using DBSCAN
+        Args:
+            p (numpy.array): xy location
+            t (numpy.array): times
+            eps (float): DBSCAN epsilon
+            t_scale (float, optional): [description]. Defaults to 1.0.
 
-    Args:
-        p (numpy.array): xy location
-        t (numpy.array): times
-        eps (float): DBSCAN epsilon
-        t_scale (float, optional): [description]. Defaults to 1.0.
+        Returns:
+            numpy.array: DBSCAN label assingment
+        """
+        X = np.c_[p, t * t_scale]
+        clustering = DBSCAN(eps).fit(X)
+        labels = clustering.labels_
 
-    Returns:
-        numpy.array: DBSCAN label assingment
-    """
-    X = np.c_[p, t * t_scale]
-    clustering = DBSCAN(eps).fit(X)
-    labels = clustering.labels_
+        return labels
 
-    return labels
+    @staticmethod
+    def dwell_centroid_idx(labels):
+        """Track indicies of dwell sub tracks
 
+        Args:
+            labels (np.array): labels from dbscann
 
-def partition_get_moving_part(trj, eps, t_scale, coords, frame):
-    """Helper function for visualization
-    """
-    p = trj[coords].values
-    t = trj[frame].values
-    dt = np.diff(t)
+        Returns:
+            list[np.array]: List of sub-track indicies
+        """
+        sub_track_indices = []
+        unique_labels = set(labels)
+        for u in unique_labels:
+            if u > 0:
+                sub_track_indices.append(np.nonzero(labels == u)[0])
 
-    labels = partition_dbscann(p, t, eps, t_scale=t_scale,) + 1
+        return [int(sti.mean()) for sti in sub_track_indices]
 
-    from skimage.measure import label
-    from scipy.ndimage.morphology import binary_dilation
-    from skimage.morphology import remove_small_objects
+    @staticmethod
+    def moving_sub_tracks(trj, labels, coords, frame):
+        """Returns the moving tracklets of given track and labels
 
-    labels = labels == 0
-    labels = remove_small_objects(labels, 3)
+        Args:
+            trj (pandas.DataFrame): The track
+            labels (np.array): labels from dbscann
+            coords (list[str]): xy identifiers
+            frame (str): frame identifier
 
-    new_trj = trj[labels]
-    new_trj[frame] = list(range(len(new_trj)))
+        Returns:
+            list[pandas.DataFrame]: List of moving subtracks
+        """
+        p = trj[coords].values
+        t = trj[frame].values
+        dt = np.diff(t)
 
-    return new_trj[coords + [frame]]
+        labels = labels == 0
+        labels = remove_small_objects(labels, 3)
+        labels = label(labels)
+
+        sub_track_indices = []
+        unique_labels = set(labels)
+        for u in unique_labels:
+            if u > 0:
+                sub_track_indices.append(np.nonzero(labels == u)[0])
+
+        sub_track_pos = [p[sti, :] for sti in sub_track_indices]
+        sub_track_time = [t[sti] for sti in sub_track_indices]
+
+        sub_trajectories = [
+            pd.DataFrame({coords[0]: p[:, 0], coords[1]: p[:, 1], frame: t})
+            for p, t in zip(sub_track_pos, sub_track_time)
+        ]
+
+        return sub_trajectories
 
