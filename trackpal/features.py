@@ -56,7 +56,7 @@ class TrackFeature:
 
 
 class MSDParabola(TrackFeature):
-    """Fits a parabola to mean squared displacment curve of track and returns
+    """Fits a parabola to mean squared displacement curve of track and returns
     fit parameters and \( R^2 \)
     """
 
@@ -76,10 +76,11 @@ class MSDParabola(TrackFeature):
 class VACstats(TrackFeature):
     """Computes velocity autocorrelation and returns statistics
 
-    * mean
-    * std
-    * min
-    * max
+    Satistics:
+        * mean
+        * std
+        * min
+        * max
 
     of the curve for delays \( > 0\)
 
@@ -116,6 +117,7 @@ class VACstats(TrackFeature):
 class SpeedStats(TrackFeature):
     """Compute several statistics of the instantaneous speed
 
+    Satistics:
         * mean
         * std
         * min
@@ -187,10 +189,10 @@ class MeanStraightLineSpeed(TrackFeature):
 class GyrationTensor(TrackFeature):
     """Compute gyration tensor by fitting an ellipse and extraction several measures
 
-    * axis lengths
-    * axis ratio
-    * radius \(R^2\)
-    * coherence
+        * axis lengths
+        * axis ratio
+        * radius \(R^2\)
+        * coherence
     """
 
     name = "gyration_tensor"
@@ -299,9 +301,9 @@ def angles_from_displacements(disp_xy):
         v0 = disp_xy[i, :]
         v1 = disp_xy[i + 1, :]
         c = (v0 @ v1) / (np.linalg.norm(v0) * np.linalg.norm(v1) + EPS)
-        ang = np.arccos(np.clip(c, -1, 1))
+        angles = np.arccos(np.clip(c, -1, 1))
 
-        a.append(ang)
+        a.append(angles)
     return a
 
 
@@ -458,6 +460,7 @@ class PartitionFeature(TrackFeature):
         if len(sub_trajectories) == 0:
             sub_trajectories = [trj]
 
+        # apply other feature classes on moving tracklets and build mean
         SS = SpeedStats(self.coords, self.frame)
         speed_vals = pd.concat([SS.compute(st) for st in sub_trajectories], axis=1)
         for key, vals in speed_vals.iterrows():
@@ -521,7 +524,7 @@ class PartitionFeature(TrackFeature):
         return [int(sti.mean()) for sti in sub_track_indices]
 
     @staticmethod
-    def moving_sub_tracks(trj, labels, coords, frame):
+    def moving_sub_tracks(trj, labels, coords, frame, minimum_size=3):
         """Returns the moving tracklets of given track and labels
 
         Args:
@@ -535,10 +538,9 @@ class PartitionFeature(TrackFeature):
         """
         p = trj[coords].values
         t = trj[frame].values
-        dt = np.diff(t)
 
         labels = labels == 0
-        labels = remove_small_objects(labels, 3)
+        labels = remove_small_objects(labels, minimum_size)
         labels = label(labels)
 
         sub_track_indices = []

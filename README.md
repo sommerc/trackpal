@@ -41,6 +41,13 @@ Output:
 ## Installation
 
 0. Install Anaconda Python (>=3.6) and create new environment
+
+From PyPi:
+
+1. `pip install trackpal`
+
+For development
+
 1. `git clone` this repostiory
 2. `cd trackpal`
 3. `pip install -e .`
