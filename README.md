@@ -37,8 +37,13 @@ Output:
 
 ### Track features
 
-* Simulate different motion types and compute track feautres
-    * [notebook](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/01_track_features.ipynb)
+* Simulate different motion types and compute track feautures
+    * [Features](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/01_track_features.ipynb)
+
+### Mean squared displacement curves
+
+* Calculate diffusion constant and velocity from different simulated motion types
+    * [MSD](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/02_mean_square_displacement_curves.ipynb)
 
 ## Installation
 
