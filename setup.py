@@ -11,7 +11,7 @@ long_description = (root / "README.md").read_text()
 exec((root / "trackpal" / "version.py").read_text())
 
 setup(
-    name="TrackPal_mock",
+    name="TrackPal",
     packages=["trackpal"],
     version=__version__,
     description="TrackPal: Tracking Python AnaLyzer",
