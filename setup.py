@@ -1,20 +1,29 @@
-import re
+import pathlib
 from setuptools import setup
 
-with open("README.md", "rb") as f:
-    description = f.read().decode("utf-8")
+# The directory containing this file
+root = pathlib.Path(__file__).parent
 
-with open("trackpal/version.py", "r") as f:
-    exec(f.read())
+# The text of the README file
+long_description = (root / "README.md").read_text()
+
+# Exec version file
+exec((root / "trackpal" / "version.py").read_text())
 
 setup(
-    name="TrackPal",
+    name="TrackPal_mock",
     packages=["trackpal"],
     version=__version__,
-    description=description,
-    long_description=description,
+    description="TrackPal: Tracking Python AnaLyzer",
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://git.ist.ac.at/csommer/trackpal",
+    license="BSD",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: BSD License",
+    ],
     #    entry_points = {'console_scripts': []},
     author="Christoph Sommer",
     author_email="christoph.sommer23@gmail.com",

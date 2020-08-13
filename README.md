@@ -7,7 +7,7 @@ A modular library for the analysis of object trackings in Python with pandas.
 * Read Imaris / TrackMate files
 * Simulate tracks with different motion types
 * Compute track feature descriptors (~50 available features)
-* Mean squared displacment curves for single tracks and ensembles
+* Mean squared displacement curves for single tracks and ensembles
 * Velocity autocorrelation curves for single tracks and ensembles
 * Visualization utilities
 
@@ -18,13 +18,14 @@ For obtaining object trackings from images or detections see for instance the
 excellent projects [TrackMate](https://imagej.net/TrackMate),
 [trackpy](http://soft-matter.github.io/trackpy) or [ilastik](ilastik.org)
 
+
 ## Examples
+
 ```python
 import trackpal as tp
 
 trj = tp.simulate.brownian_linear(n_tracks=10)
 
-# plot as lines
 trj.groupby(trj.trackid).apply(
     tp.visu.plot_trj, coords=trj.xy, line_fmt=".-",
 )
@@ -32,6 +33,7 @@ trj.groupby(trj.trackid).apply(
 
 Output:
 ![](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png "Output")
+
 
 ### Track features
 
