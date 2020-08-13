@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 
-from .utils import set_meta_attr, IdDefaults
+from .utils import IdDefaults
 
 coords = IdDefaults.xy
 trackid = IdDefaults.track
@@ -67,7 +67,7 @@ def brownian(
 
     brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
-    return set_meta_attr(brownian_track)
+    return brownian_track
 
 
 def _linear_xy(
@@ -129,7 +129,7 @@ def linear(
 
     brownian_track = pd.concat(res, axis=0).reset_index(drop=True)
 
-    return set_meta_attr(brownian_track)
+    return brownian_track
 
 
 def brownian_linear(diffusion=1, velocity=1, **kwargs):
@@ -227,5 +227,5 @@ def saltatory(
 
         res.append(df)
 
-    return set_meta_attr(pd.concat(res, axis=0).reset_index(drop=True))
+    return pd.concat(res, axis=0).reset_index(drop=True)
 

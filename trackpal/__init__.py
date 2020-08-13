@@ -94,7 +94,6 @@ import numpy as np
 import pandas as pd
 from itertools import count
 
-from .utils import clone_id_attr
 from . import features, fit, msd, read, velocity, version, visu, simulate
 
 
@@ -103,15 +102,11 @@ def concat_relabel(trj_list, trackid=None):
 
     Args:
         trj_list (list[pandas.DataFrame]): List of tracks to concatenate
-        trackid (str, optional): trackid column identifier. Defaults to None.
+        trackid (str): trackid column identifier
 
     Returns:
-        pandas.DataFrame: Concatenated DataFrame with unqiue track ids
+        pandas.DataFrame: Concatenated DataFrame with unique track ids
     """
-    if hasattr(trj_list[0], "trackid"):
-        trackid = getattr(trj_list[0], "trackid")
-    elif trackid is None:
-        from .simulate import trackid
 
     cnt = count(start=0, step=1)
     res = []
