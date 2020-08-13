@@ -32,7 +32,7 @@ trj.groupby(trj.trackid).apply(
 ```
 
 Output:
-![](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png "Output")
+![Output](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png)
 
 
 ### Track features
@@ -51,7 +51,7 @@ Output:
 
 From PyPi:
 
-1. `pip install trackpal`
+1. `pip install TrackPal`
 
 For development
 
@@ -62,5 +62,7 @@ For development
 
 ## Documentation
 
-Find [API documentation](https://trackpal.github.io/trackpal) on github
+* [GitHub mirror](https://github.com/sommerc/trackpal)
+* [GitLab IST](https://git.ist.ac.at/csommer/trackpal)
+* [API documentation](https://trackpal.github.io/trackpal)
 
