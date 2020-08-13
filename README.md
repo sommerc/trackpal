@@ -32,7 +32,7 @@ trj.groupby(trj.trackid).apply(
 ```
 
 Output:
-![Output](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png)
+![Output](doc/img/bl_tracks_01.png)
 
 
 ### Track features
