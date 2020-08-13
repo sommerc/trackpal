@@ -55,9 +55,13 @@ import trackpal as tp
 
 trj = tp.simulate.brownian_linear(n_tracks=10)
 
+trackid = "TrackID"
+frameid = "FRAME"
+coords_xy = ["Position X", "Position Y"]
+
 # plot as lines
-trj.groupby(trj.trackid).apply(
-    tp.visu.plot_trj, coords=trj.xy, line_fmt=".-",
+trj.groupby(trackid).apply(
+    tp.visu.plot_trj, coords=coords_xy, line_fmt=".-",
 )
 ```
 
