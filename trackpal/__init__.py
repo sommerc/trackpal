@@ -1,89 +1,14 @@
 """# TrackPal: Tracking Python AnaLyzer
-
-A modular library for the analysis of object trackings in Python with pandas.
-
-## Installation
-
-[on github](https://git.ist.ac.at/csommer/trackpal/)
-
-## Overview
-
-### Track representation
-
-Tracks are represented as a (stacked) pandas DataFrame with a minium of 5 columns for:
-
-* TrackID
-* FrameID
-* Position for X and Y coordinates
-* TimeID
-
-Each track must have an unique TrackID.
-
-More columns can be added to store additional information.
-
-A loaded or a simulated data set contains an attribute `id` which holds the
-identifiers to access the columns.
-
-The default identifiers are:
-
-* TrackID: `"track"`
-* FrameID: `"frame"`
-* Position for X and Y coordinates: `"xy"`
-* TimeID `"time"`
-
-### General
-For most computations trackpal relies on pandas `groupby` and `apply` mechanism.
-
-`TrackPal` does not track or link objects. It analyzes already tracked objects.
-For obtaining object trackings from images or detections see for instance the
-excellent projects [TrackMate](https://imagej.net/TrackMate),
-[trackpy](http://soft-matter.github.io/trackpy) or [ilastik](ilastik.org)
-
-## Examples:
-
-### Simulate tracks
-The following types of tracks are supported:
-
-* brownian motion (Gaussian random walk)
-* linear motion
-* mixed brownian and linear
-* saltatory motion
-
-Examples:
-```python
-import trackpal as tp
-
-trj = tp.simulate.brownian_linear(n_tracks=10)
-
-trackid = "TrackID"
-frameid = "FRAME"
-coords_xy = ["Position X", "Position Y"]
-
-# plot as lines
-trj.groupby(trackid).apply(
-    tp.visu.plot_trj, coords=coords_xy, line_fmt=".-",
-)
-```
-
-Output:
-![](https://git.ist.ac.at/csommer/trackpal/-/raw/master/doc/img/bl_tracks_01.png "Output")
-
-### Track features
-
-* Simulate different motion types and compute track feautures
-    * [Features](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/01_track_features.ipynb)
-
-### Mean squared displacement curves
-
-* Calculate diffusion constant and velocity from different simulated motion types
-    * [MSD](https://git.ist.ac.at/csommer/trackpal/-/blob/master/examples/02_mean_square_displacement_curves.ipynb)
-
-
-## Source code and issue tracker:
-[on github](https://git.ist.ac.at/csommer/trackpal/)
-
-
 """
+
+import pathlib
+
+# The directory containing this file
+_this_dir = pathlib.Path(__file__).parent
+
+# The text of the README file
+__doc__ = (_this_dir / ".." / "README.md").read_text()
+
 
 __all__ = [
     # "drift", ##TODO
