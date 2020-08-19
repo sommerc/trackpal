@@ -31,7 +31,7 @@ setup(
         "numpy",
         "pandas>=1.0.4",
         "scikit-image",
-        "scikit-learn",
+        "scikit-learn==0.21.1",
         "tifffile",
         "tqdm",
         "scipy",
@@ -39,6 +39,7 @@ setup(
         "matplotlib",
         "rdp",
         "tqdm",
+        "pingouin",
     ],
 )
 
