@@ -38,8 +38,8 @@ setup(
         "statsmodels",
         "matplotlib",
         "rdp",
-        "tqdm",
         "pingouin",
+        "seaborn",
     ],
 )
 
