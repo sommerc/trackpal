@@ -1,4 +1,4 @@
-"""# TrackPal: Tracking Python AnaLyzer
+"""TrackPal: Tracking Python AnaLyzer
 """
 
 import pathlib

@@ -53,16 +53,12 @@ def fit_parabola(x, y, clip=0.25):
     y = y[:clip_int]
 
     (D, V2), cov = curve_fit(
-        parabola,
-        x,
-        y,
-        p0=(1, 1),
-        bounds=[(-numpy.inf, -numpy.inf), (numpy.inf, numpy.inf)],
+        parabola, x, y, p0=(1, 1), bounds=[(-np.inf, -np.inf), (np.inf, np.inf)],
     )
 
     residuals = y - parabola(x, D, V2)
-    ss_res = numpy.sum(residuals ** 2)
-    ss_tot = numpy.sum((y - numpy.mean(y)) ** 2)
+    ss_res = np.sum(residuals ** 2)
+    ss_tot = np.sum((y - np.mean(y)) ** 2)
     r2 = 1 - (ss_res / ss_tot)
 
     return D, V2, r2

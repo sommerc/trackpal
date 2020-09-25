@@ -30,7 +30,7 @@ def brownian(
     ys_rng=(0, 100),
     frame_interval=1,
 ):
-    """[summary]
+    """Simmulates brownian motion by Gaussian random walk.
 
     Args:
         n_tracks (int, optional):  Defaults to 20.
@@ -94,7 +94,7 @@ def linear(
     ys_rng=(0, 100),
     frame_interval=1,
 ):
-    """Simulate pure linear motion
+    """Simulate linear motion
 
     Args:
         n_tracks (int, optional): Defaults to 20.

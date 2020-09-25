@@ -90,32 +90,3 @@ def auto_correlation_curve(table_tracks, coords, trackid, frame_interval=1):
 
     return pd.DataFrame({"tau": taus, "mean": ac_means, "std": ac_std, "sem": ac_sems})
 
-
-# def distribution(table_tracks, frame_interval):
-#     """plots distribuition of velocities directly from the track displacement"""
-
-#     print("Processing Velocities Distribution ...")
-
-#     velocities = table_tracks.groupby("TRACK_ID").apply(
-#         displacement, coords=["POSITION_X", "POSITION_Y"]
-#     )
-#     velocities_dist = (
-#         np.sqrt((velocities[["POSITION_X", "POSITION_Y"]] ** 2).sum(1))
-#         / frame_interval
-#         * 1000
-#     )  # in nm/s
-
-#     binning = int(np.sqrt(len(velocities_dist)))
-
-#     plt.figure(figsize=(5, 4), dpi=100)
-#     counts, bins, patches = plt.hist(
-#         velocities_dist, color="blue", alpha=0.8, edgecolor="black"
-#     )
-
-#     plt.xlabel("Velocitities (nm/s)", fontsize=12)
-#     plt.ylabel("Counts", fontsize=12)
-#     # plt.legend(loc=0, fontsize = 10, frameon = False)
-#     plt.title(" Velocities Distribution")
-
-#     return velocities_dist
-
